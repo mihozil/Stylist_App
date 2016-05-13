@@ -1,0 +1,13 @@
+PODS:
+  - FFGlobalAlertController (1.0.2)
+  - Firebase (2.5.1)
+
+DEPENDENCIES:
+  - FFGlobalAlertController
+  - Firebase (>= 2.5.1)
+
+SPEC CHECKSUMS:
+  FFGlobalAlertController: 40c66500ae173895085911ba19d79d045bd26742
+  Firebase: 3565ea88b830f28f2c77ecc524622bc71a20d085
+
+COCOAPODS: 0.39.0
