@@ -29,7 +29,7 @@
 }
 
 - (void) initProject{
-    ref = [[Firebase alloc]initWithUrl:@"https://stylerapplication.firebaseio.com"];
+    ref = [[Firebase alloc]initWithUrl:@"https://stylerapplication.firebaseio.com/rooms"];
     stylerPosition = CLLocationCoordinate2DMake(0, 0);
     
     locationManager = [[CLLocationManager alloc]init];

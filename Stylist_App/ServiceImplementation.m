@@ -66,12 +66,15 @@
 
 - (void) updateClientCancel{
     [[[roomRef childByAppendingPath:@"status"]childByAppendingPath:@"status1"] observeEventType:FEventTypeValue withBlock:^(FDataSnapshot*snapShot){
-        NSString *status1 = snapShot.value;
-        NSLog(@"status1: %@",status1);
-        if ([status1 isEqualToString:@"cancel"]){
-            [ShowAlertView showAlertwithTitle:@"Service cancelled" andMessenge:@"Client has cancelled the service" inViewController:self];
-            [self serviceCancelled];
+        if (snapShot.value !=[NSNull null]){
+            NSString *status1 = snapShot.value;
+            NSLog(@"status1: %@",status1);
+            if ([status1 isEqualToString:@"cancel"]){
+                [ShowAlertView showAlertwithTitle:@"Service cancelled" andMessenge:@"Client has cancelled the service" inViewController:self];
+                [self serviceCancelled];
+            }
         }
+        
     }];
 }
 

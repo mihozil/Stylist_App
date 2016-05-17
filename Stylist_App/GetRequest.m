@@ -68,7 +68,8 @@
         [customerData setObject:json[@"phonenumber"] forKey:@"phonenumber"];
         // and add image
         
-        [[NSUserDefaults standardUserDefaults]setObject:customerData forKey:@"customerData"];
+        // must remember to reopen this
+//        [[NSUserDefaults standardUserDefaults]setObject:customerData forKey:@"customerData"];
     }];
 }
 
@@ -121,8 +122,9 @@
 }
 
 - (void) createTimer{
-    timeCount = 15;
-    _timeLabel.text = @"Time:\n15s";
+    NSNumber *timeRemain = [[NSUserDefaults standardUserDefaults]objectForKey:@"timeCount"];
+    timeCount = [timeRemain intValue];
+    _timeLabel.text = @"Time:\n30s";
     timer = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(onTimer) userInfo:nil repeats:true];
     
 }
@@ -131,8 +133,9 @@
     _timeLabel.text = [NSString stringWithFormat:@"Time:\n%d",timeCount];
     if (timeCount==0){
         [timer invalidate];
-        [self.navigationController popViewControllerAnimated:YES];
+//        [self.navigationController popViewControllerAnimated:YES];
         [self rejectRequest];
+        [self gotoGoOnline];
     }
     
 }
@@ -181,15 +184,16 @@
 - (IBAction)declineBt:(id)sender {
     [timer invalidate];
     [self rejectRequest];
+    [self gotoGoOnline];
     
+}
+- (void) gotoGoOnline{
     for (UIViewController *viewController in self.navigationController.viewControllers ){
         if ([viewController isKindOfClass:[GoOnline class]]){
             [self.navigationController popToViewController:viewController animated:YES];
             break;
         }
     };
-    
-    
 }
 - (void) rejectRequest{
     NSDictionary *status1 = @{@"status1":@"reject"};
@@ -198,7 +202,6 @@
     [[NSUserDefaults standardUserDefaults]setObject:timeStampString forKey:@"timeReject"];
     [[roomRef childByAppendingPath:@"status"]updateChildValues:status1];
 
-    
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView{

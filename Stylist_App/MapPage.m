@@ -27,6 +27,9 @@
     NSDictionary *stylerData;
     Firebase *roomRef;
     
+    NSTimer *timer;
+    int timeCout;
+    
 }
 - (void) initProject{
     locationManager = [[CLLocationManager alloc]init];
@@ -61,34 +64,57 @@
     roomRef = [[RoomSingleton shareSingleton]roomRef];
     
     [roomRef observeEventType:FEventTypeValue withBlock:^(FDataSnapshot*snapShot){
-        NSDictionary *dic = snapShot.value;
-        if (dic.count>0){
-            if ([dic[@"status"][@"status1"] isEqualToString:@"waiting"]){
-                [self updateClientServices:dic];
-                [self customerRequest];
-                [roomRef removeAllObservers];
+        if (snapShot.value!=[NSNull null]){
+            NSDictionary *dic = snapShot.value;
+                if ([dic[@"status"][@"status1"] isEqualToString:@"waiting"]){
+                    [self customerRequest];
+                    [roomRef removeAllObservers];
+                    
+                    NSLog(@"it didcome");
             }
         }
-        
     }];
-}
-- (void) updateClientServices:(NSDictionary*)room{
-    NSString *clientService = room[@"services_customer"];
-    
-    
 }
 - (void) customerRequest{
-    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"New Request" message:@"You have received a new request" preferredStyle:UIAlertControllerStyleAlert];
-    UIAlertAction *action = [UIAlertAction actionWithTitle:@"See Request" style:UIAlertActionStyleDefault handler:^(UIAlertAction*action){
-        [self gotoGetRequest];
-    }];
-    [alertController addAction:action];
+//    [self gotoGetRequest];
+    UILocalNotification *localNotification = [[UILocalNotification alloc]init];
+    localNotification.alertBody = @"New Request: You have 30 seconds to get the request";
+    localNotification.soundName = UILocalNotificationDefaultSoundName;
+    localNotification.fireDate = [NSDate date];
+    localNotification.timeZone = [NSTimeZone defaultTimeZone];
+    [[UIApplication sharedApplication]scheduleLocalNotification:localNotification];
     
-    [alertController show];
-    AudioServicesPlayAlertSound(kSystemSoundID_Vibrate);
-    
+    [self createTimer];
+}
+- (void) createTimer{
+    timeCout = 30;
+       timer = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(onTimer) userInfo:nil repeats:true];
     
 }
+- (void) onTimer{
+    [[NSUserDefaults standardUserDefaults]setObject:@(timeCout) forKey:@"timeCount"];
+    
+    if ([UIApplication sharedApplication].applicationState == UIApplicationStateActive){
+        [self gotoGetRequest];
+        [timer invalidate];
+    }else{
+        timeCout -=1;
+        if (timeCout == 0){
+            [timer invalidate];
+            [self rejectRequest];
+            [self.navigationController popViewControllerAnimated:YES];
+        }
+    }
+    
+}
+- (void) rejectRequest{
+    NSDictionary *status1 = @{@"status1":@"reject"};
+    double timeStamp = [[NSDate date]timeIntervalSince1970];
+    NSString *timeStampString = [NSString stringWithFormat:@"%2.2f",timeStamp];
+    [[NSUserDefaults standardUserDefaults]setObject:timeStampString forKey:@"timeReject"];
+    [[roomRef childByAppendingPath:@"status"]updateChildValues:status1];
+}
+
 - (void) gotoGetRequest{
     GetRequest *getRequest = [self.storyboard instantiateViewControllerWithIdentifier:@"getrequest"];
     [self.navigationController pushViewController:getRequest animated:YES];

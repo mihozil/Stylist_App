@@ -17,4 +17,5 @@
 @property (weak, nonatomic) IBOutlet UILabel *totalPriceLabel;
 @property (weak, nonatomic) IBOutlet UILabel *descriptionLabel;
 
+
 @end
