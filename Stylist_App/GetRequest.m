@@ -40,6 +40,8 @@
     _tableVIew.backgroundColor = [UIColor clearColor];
     _tableVIew.separatorStyle = UITableViewCellSeparatorStyleNone;
     roomRef = [[RoomSingleton shareSingleton]roomRef];
+    [self updateClientRespond];
+    
     _mapView.showsUserLocation = YES;
     activityIndicator = [UIActivityIndicatorView new];
     self.navigationController.navigationBarHidden = YES;
@@ -63,13 +65,15 @@
     // update client info here
     NSString *urlString = [NSString stringWithFormat:@"http://styler.theammobile.com/GET_CUSTOMER_INFORMATION_BASIC.php?idcustomer=%@",idcustomer];
     [IOSRequest requestPath:urlString onCompletion:^(NSError*error, NSDictionary*json){
-        NSString *customerName = [NSString stringWithFormat:@"%@ %@",json[@"firstname"],json[@"lastname"]];
-        [customerData setObject:customerName forKey:@"name"];
-        [customerData setObject:json[@"phonenumber"] forKey:@"phonenumber"];
+        if (!error){
+            NSString *customerName = [NSString stringWithFormat:@"%@ %@",json[@"firstname"],json[@"lastname"]];
+            [customerData setObject:customerName forKey:@"name"];
+            [customerData setObject:json[@"phonenumber"] forKey:@"phonenumber"];
+        }
         // and add image
         
         // must remember to reopen this
-//        [[NSUserDefaults standardUserDefaults]setObject:customerData forKey:@"customerData"];
+        [[NSUserDefaults standardUserDefaults]setObject:customerData forKey:@"customerData"];
     }];
 }
 
@@ -147,20 +151,30 @@
     
     NSDictionary *status1=@{@"status1":@"accept"};
     [[roomRef childByAppendingPath:@"status"]updateChildValues:status1];
-    [self updateClientRespond];
+//    [self updateClientRespond];
     
 }
 - (void) updateClientRespond{
-    [[roomRef childByAppendingPath:@"status"]observeSingleEventOfType:FEventTypeChildChanged withBlock:^(FDataSnapshot*snapShot){
+    [[[roomRef childByAppendingPath:@"status"]childByAppendingPath:@"status1"] observeEventType:FEventTypeValue withBlock:^(FDataSnapshot*snapShot){
         // take care if snapshot.value not belong to NSString
-        NSString *status1 = snapShot.value;
-        if ([status1 isEqualToString:@"doing"]){
-            [self gotoServiceImplementation];
-            [ShowActivityIndicatorView stopActivityIndicator:activityIndicator];
-            
-        }else if ([status1 isEqualToString:@"open"]){
-            [self clientReject];
-            [ShowActivityIndicatorView stopActivityIndicator:activityIndicator];
+        if (snapShot.value!=[NSNull null]){
+            NSString *status1 = snapShot.value;
+            if ([status1 isEqualToString:@"doing"]){
+                [self gotoServiceImplementation];
+                // take note that this can be removed
+                [roomRef removeAllObservers];
+                [timer invalidate];
+                [ShowActivityIndicatorView stopActivityIndicator:activityIndicator];
+                
+            }else if ([status1 isEqualToString:@"open"]){
+                NSLog(@"client reject");
+                [self clientReject];
+                // take note that this can be removed
+                [roomRef removeAllObservers];
+                [timer invalidate];
+                [ShowActivityIndicatorView stopActivityIndicator:activityIndicator];
+            }
+
         }
     }];
 }

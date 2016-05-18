@@ -178,10 +178,20 @@
                                     <constraint firstAttribute="bottom" secondItem="O5I-1b-xJf" secondAttribute="bottom" constant="5" id="xnW-o9-pz4"/>
                                 </constraints>
                             </view>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3jZ-L4-2X3">
+                                <rect key="frame" x="16" y="509" width="68" height="39"/>
+                                <string key="text">Waiting
+Request...</string>
+                                <fontDescription key="fontDescription" name="Baskerville" family="Baskerville" pointSize="17"/>
+                                <color key="textColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="7Ch-qB-qxX" firstAttribute="top" secondItem="tjc-Xl-g1m" secondAttribute="bottom" id="3qV-Jg-Ma6"/>
+                            <constraint firstItem="3jZ-L4-2X3" firstAttribute="leading" secondItem="J6m-AA-Q97" secondAttribute="leadingMargin" id="8kd-cV-KKZ"/>
+                            <constraint firstItem="Ttv-tk-qcL" firstAttribute="top" secondItem="3jZ-L4-2X3" secondAttribute="bottom" constant="20" id="9y2-v2-vTl"/>
                             <constraint firstItem="trW-vO-mbW" firstAttribute="trailing" secondItem="J6m-AA-Q97" secondAttribute="trailingMargin" id="B58-Bw-MQH"/>
                             <constraint firstItem="Ttv-tk-qcL" firstAttribute="top" secondItem="trW-vO-mbW" secondAttribute="bottom" constant="20" id="DUb-Cl-fYy"/>
                             <constraint firstItem="uf4-A5-pKn" firstAttribute="leading" secondItem="J6m-AA-Q97" secondAttribute="leadingMargin" constant="-20" id="Kd7-V9-EM0"/>

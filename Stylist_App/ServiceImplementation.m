@@ -20,11 +20,14 @@
 @end
 
 @implementation ServiceImplementation{
+    BOOL stylerCancel;
     CLLocationCoordinate2D userPosition;
     MKPointAnnotation *stylerAnnotation;
     Firebase *roomRef;
     NSString *status;
     NSString *phoneNo;
+    Firebase *customerNotiRef;
+    NSString *idCustomer, *roomId;
     
 }
 - (void) initProject{
@@ -55,21 +58,28 @@
     [self updateClientCancel];
     [roomRef observeSingleEventOfType:FEventTypeValue withBlock:^(FDataSnapshot*snapShot){
         // userposition
+        
         NSDictionary *dic = snapShot.value;
+        
         float userLat = [dic[@"status"][@"gps_lat2"] floatValue];
         float userLog = [dic[@"status"][@"gps_long2"] floatValue];
         userPosition = CLLocationCoordinate2DMake(userLat, userLog);
         [self recenterMap];
         [self addAnnotation];
+        
+        idCustomer = dic[@"idcustomer"];
+        roomId = snapShot.key;
     }];
 }
 
 - (void) updateClientCancel{
     [[[roomRef childByAppendingPath:@"status"]childByAppendingPath:@"status1"] observeEventType:FEventTypeValue withBlock:^(FDataSnapshot*snapShot){
+        
         if (snapShot.value !=[NSNull null]){
             NSString *status1 = snapShot.value;
             NSLog(@"status1: %@",status1);
-            if ([status1 isEqualToString:@"cancel"]){
+            if ([status1 isEqualToString:@"cancel"])
+            if (!stylerCancel){
                 [ShowAlertView showAlertwithTitle:@"Service cancelled" andMessenge:@"Client has cancelled the service" inViewController:self];
                 [self serviceCancelled];
             }
@@ -82,6 +92,7 @@
     MKCoordinateRegion region = MKCoordinateRegionMakeWithDistance(userPosition, 2000, 2000);
     [_mapView setRegion:region];
 }
+
 - (void) addAnnotation{
     MKPointAnnotation *annotation = [[MKPointAnnotation alloc]init];
     annotation.coordinate = userPosition;
@@ -89,6 +100,7 @@
     [_mapView addAnnotation:annotation];
     
 }
+
 - (MKAnnotationView *)mapView:(MKMapView *)mapView viewForAnnotation:(id<MKAnnotation>)annotation{
     MKAnnotationView *annView = nil;
     if (annotation!=_mapView.userLocation){
@@ -130,6 +142,7 @@
     UIAlertAction *actionYes = [UIAlertAction actionWithTitle:@"Yes" style:UIAlertActionStyleDefault handler:^(UIAlertAction*action){
         [[[roomRef childByAppendingPath:@"status"]childByAppendingPath:@"status1"]setValue:@"complete"];
         [self gotoReceipt];
+        [self sendNotiClient];
     }];
     UIAlertAction *actionNo = [UIAlertAction actionWithTitle:@"No" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action){
     }];
@@ -137,7 +150,32 @@
     [alertController addAction:actionNo];
     
     [self presentViewController:alertController animated:YES completion:nil];
-    [self gotoReceipt];
+//    [self gotoReceipt];
+}
+- (void) sendNotiClient{
+    NSString *notiCustomerRoom = [NSString stringWithFormat:@"https://stylerapplication.firebaseio.com/noti/%@",idCustomer];
+    customerNotiRef = [[Firebase alloc]initWithUrl:notiCustomerRoom];
+    
+    NSMutableDictionary *notiRoom = [[NSMutableDictionary alloc]init];
+    [notiRoom setValue:@"You service has been completed" forKey:@"content"];
+    [notiRoom setValue:@"show" forKey:@"status"];
+    [notiRoom setValue:[self getCurrentDate] forKey:@"date"];
+    [notiRoom setValue:roomId forKey:@"roomid"];
+    
+    Firebase *notiRoomRef = [customerNotiRef childByAutoId];
+    [notiRoomRef observeSingleEventOfType:FEventTypeValue withBlock:^(FDataSnapshot*snapShot){
+        [notiRoom setValue:snapShot.key forKey:@"notiid"];
+        [notiRoomRef setValue:notiRoom];
+    }];
+    
+    
+}
+- (NSString*) getCurrentDate{
+    NSLocale *locale = [NSLocale currentLocale];
+    NSString *date = [[NSDate date]descriptionWithLocale:locale];
+    NSArray *dateArray = [date componentsSeparatedByString:@" at"];
+    
+    return dateArray[0];
 }
 - (void) gotoReceipt{
     ReceiptVC *receiptVC = [self.storyboard instantiateViewControllerWithIdentifier:@"receiptvc"];
@@ -205,8 +243,9 @@
     [self presentViewController:alertController animated:YES completion:nil];
 }
 - (void) serviceCancelled{
+    [roomRef removeAllObservers];
+    stylerCancel = YES;
     [[[roomRef childByAppendingPath:@"status"]childByAppendingPath:@"status1"]setValue:@"cancel" withCompletionBlock:^(NSError*error, Firebase*ref){
-        [roomRef removeAllObservers];
         for (UIViewController *vc in self.navigationController.viewControllers){
             if ([vc isKindOfClass:[GoOnline class]]){
                 [self.navigationController popToViewController:vc animated:YES];

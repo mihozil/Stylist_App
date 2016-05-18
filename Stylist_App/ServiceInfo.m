@@ -20,7 +20,7 @@
         NSInteger valueLength = [valueString length];
         services = [services substringWithRange:NSMakeRange(valueLength+1, [services length]-valueLength-1)];
         
-        [customerServices addObject:allServices[value/3+1]];
+        [customerServices addObject:allServices[value/3]];
         
     } while (![services isEqualToString:@""]);
     return customerServices;

@@ -95,10 +95,12 @@
     [[NSUserDefaults standardUserDefaults]setObject:@(timeCout) forKey:@"timeCount"];
     
     if ([UIApplication sharedApplication].applicationState == UIApplicationStateActive){
-        [self gotoGetRequest];
         [timer invalidate];
+        [self gotoGetRequest];
+        
     }else{
         timeCout -=1;
+//        NSLog(@"timecount: %d",timeCout);
         if (timeCout == 0){
             [timer invalidate];
             [self rejectRequest];
